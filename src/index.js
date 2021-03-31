@@ -10,19 +10,73 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+
+  const sameUsername = users.find((user) => user.username === username);
+
+  if(!sameUsername)
+  {
+    return response.status(404).json({error: "Username not found!"});
+  }
+
+  request.user = sameUsername;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if(!user.pro && (user.todos.length===10))
+  {
+    return response.status(403).json({error:"Limit of To Do's created has been reached!"});
+  }
+
+
+  return next();
+
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+ 
+  const sameUsername = users.find((user) => user.username === username);
+ 
+  if(!sameUsername) {
+    return response.status(404).json({error:"User not found!"});
+  }
+  
+  const id_is_Uuid = validate(id);
+  if(!id_is_Uuid)
+  {
+    return response.status(400).json({error:"ID does not match!"});
+  }
+  // Deve-se passar no if de sameUsername antes para verificar se existe, antes de checar o todo.
+  const checkToDoById = sameUsername.todos.find((todo) => todo.id === id);
+  if (!checkToDoById) {
+    return response.status(404).json({error:"To Do list not found!"});
+  }
+
+
+  request.user = sameUsername;
+  request.todo = checkToDoById;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const checkUserId = users.find((user) => user.id === id);
+
+  if(!checkUserId) {
+    return response.status(404).json({error:"ID does not match with any user!"});
+  }
+  request.user = checkUserId;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
